@@ -43,6 +43,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -230,12 +231,12 @@ fun ProfileTab(navigateFeedback: () -> Unit, context: Context) {
 fun OrderTab(context: Context) {
 
     var bottomSheetScaffold = rememberBottomSheetScaffoldState()
-    var size by remember {mutableStateOf("Medium")}
-    var flavour by remember {mutableStateOf("Vanilla")}
-    var dropdownEnabled by remember {mutableStateOf(false)}
+    var size by rememberSaveable {mutableStateOf("Medium")}
+    var flavour by rememberSaveable {mutableStateOf("Vanilla")}
+    var dropdownEnabled by rememberSaveable{mutableStateOf(false)}
     var sharedPref =  LocalContext.current.getSharedPreferences("User", Context.MODE_PRIVATE)
-    var tea by remember { mutableStateOf(getAllDrinks()[0])}
-    var selectedItem by remember { mutableStateOf(1) }
+    var tea by rememberSaveable { mutableStateOf(getAllDrinks()[0])}
+    var selectedItem by rememberSaveable { mutableStateOf(1) }
     Spacer(modifier = Modifier
         .height(40.dp)
         .fillMaxWidth())

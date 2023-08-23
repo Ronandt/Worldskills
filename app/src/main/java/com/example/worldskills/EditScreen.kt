@@ -32,6 +32,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -54,12 +55,12 @@ fun EditScreen(index: Int, context : Context, navigateBack: () -> Unit) {
                  ?.let {
                      SharedPrefResolver.getCart(context, it).getJSONArray("prefered_order").getJSONObject(index)
                  } }
-        var size by remember { mutableStateOf(selectedOne!!.getJSONArray("cust")[0].toString()) }
-        var flavour by remember { mutableStateOf(selectedOne!!.getJSONArray("cust")[1].toString()) }
-        var dropdownEnabled by remember { mutableStateOf(false) }
+        var size by rememberSaveable { mutableStateOf(selectedOne!!.getJSONArray("cust")[0].toString()) }
+        var flavour by rememberSaveable { mutableStateOf(selectedOne!!.getJSONArray("cust")[1].toString()) }
+        var dropdownEnabled by rememberSaveable{ mutableStateOf(false) }
         var sharedPref =  LocalContext.current.getSharedPreferences("User", Context.MODE_PRIVATE)
-        var tea by remember { mutableStateOf(selectedOne?.getString("name")) }
-        var selectedItem by remember { mutableStateOf(selectedOne!!.getInt("Qty")) }
+        var tea by rememberSaveable{ mutableStateOf(selectedOne?.getString("name")) }
+        var selectedItem by rememberSaveable { mutableStateOf(selectedOne!!.getInt("Qty")) }
 
         Spacer(modifier = Modifier
             .height(40.dp)

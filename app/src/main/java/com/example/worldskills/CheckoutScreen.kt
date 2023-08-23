@@ -29,6 +29,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -43,6 +44,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.worldskills.ui.theme.appBarColor
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -50,6 +52,7 @@ import kotlinx.coroutines.withContext
 @Composable
 fun CheckoutScreen(navigateBack: () -> Unit, context: Context, navigateOrder: () -> Unit, navController: NavController) {
     var session = SharedPrefResolver.getSession(context)
+    var networkState = NetworkObserver.observe(context).collectAsState(initial = false)
     var mobileNumb = session?.getJSONObject("result")?.getString("mobile")
     var cart = mobileNumb?.let { SharedPrefResolver.getCart(context, mobileNumber = it) }
     var total by remember {mutableStateOf(0f)}
@@ -120,16 +123,21 @@ fun CheckoutScreen(navigateBack: () -> Unit, context: Context, navigateOrder: ()
                         Spacer(modifier = Modifier.weight(1f))
                         var scope = rememberCoroutineScope()
                         ChoiceButton(selected = true, text = "PAY", modifier = Modifier.width(200.dp), onClick = {
-                            scope.launch(Dispatchers.IO) {
-                                var mobile =SharedPrefResolver.getSession(context = context)?.getJSONObject("result")!!.getString("mobile")
-                                CallAPI.pay(mobileNumber = mobile,cart = SharedPrefResolver.getCart(context = context, mobileNumber = mobile))
-                                SharedPrefResolver.clearCart(context, mobile)
-                                withContext(Dispatchers.Main) {
+                            if(networkState.value) {
+                                scope.launch(Dispatchers.IO) {
+                                    var mobile =SharedPrefResolver.getSession(context = context)?.getJSONObject("result")!!.getString("mobile")
+                                    CallAPI.pay(mobileNumber = mobile,cart = SharedPrefResolver.getCart(context = context, mobileNumber = mobile))
+                                    SharedPrefResolver.clearCart(context, mobile)
+                                    withContext(Dispatchers.Main) {
 
-                                    Toast.makeText(context, "Ordered items!", Toast.LENGTH_LONG).show()
-                                    navigateOrder()
+                                        Toast.makeText(context, "Ordered items!", Toast.LENGTH_LONG).show()
+                                        navigateOrder()
+                                    }
                                 }
+                            } else {
+                                Toast.makeText(context, "You do not have internet, try again!", Toast.LENGTH_LONG).show()
                             }
+
 
 
 
