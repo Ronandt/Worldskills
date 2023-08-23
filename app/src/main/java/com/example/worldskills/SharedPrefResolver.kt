@@ -31,6 +31,8 @@ class SharedPrefResolver {
             }
            return JSONObject(context.getSharedPreferences("User", Context.MODE_PRIVATE).getString("cart-${mobileNumber}", "cart-0"))
         }
+
+
         fun addCart(context: Context, mobileNumber: String, item: JSONObject) {
             var sharedpref = context.getSharedPreferences("User", Context.MODE_PRIVATE)
             with(sharedpref.edit()) {
@@ -45,6 +47,21 @@ class SharedPrefResolver {
                 apply()
             }
            // return JSONObject(context.getSharedPreferences("User", Context.MODE_PRIVATE).getString("cart-${mobileNumber}", "cart-0"))
+        }
+
+        fun editCart(context: Context, mobileNumber: String, item: JSONObject, index: Int) {
+            var sharedpref = context.getSharedPreferences("User", Context.MODE_PRIVATE)
+            with(sharedpref.edit()) {
+                var cart = getCart(context, mobileNumber)
+                println("HOW" +  cart.toString())
+                cart.getJSONArray("prefered_order").apply {
+                    put(index, item)
+                }
+
+                println(cart.toString())
+                putString("cart-${mobileNumber}", cart.toString())
+                apply()
+            }
         }
 
         fun clearCart(context: Context, mobileNumber:String) {

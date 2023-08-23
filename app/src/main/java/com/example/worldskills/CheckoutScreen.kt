@@ -40,6 +40,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.example.worldskills.ui.theme.appBarColor
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -47,7 +48,7 @@ import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CheckoutScreen(navigateBack: () -> Unit, context: Context, navigateOrder: () -> Unit) {
+fun CheckoutScreen(navigateBack: () -> Unit, context: Context, navigateOrder: () -> Unit, navController: NavController) {
     var session = SharedPrefResolver.getSession(context)
     var mobileNumb = session?.getJSONObject("result")?.getString("mobile")
     var cart = mobileNumb?.let { SharedPrefResolver.getCart(context, mobileNumber = it) }
@@ -92,7 +93,7 @@ fun CheckoutScreen(navigateBack: () -> Unit, context: Context, navigateOrder: ()
                                 }
                                 Column(modifier =  Modifier.height(80.dp), verticalArrangement = Arrangement.SpaceBetween, horizontalAlignment = Alignment.CenterHorizontally) {
                                     Text(text = "$${ CalculateCost.calculateTotalCost(obj.getInt("Qty"), tea = obj.getString("name"), flavour = obj.getJSONArray("cust").getString(1), size = obj.getJSONArray("cust").getString(0))}", fontWeight = FontWeight.Bold)
-                                    ChoiceButton(selected = true, text = "EDIT", small = true)
+                                    ChoiceButton(selected = true, text = "EDIT", small = true, onClick = { navController.navigate("edit/${it}") })
                                 }
 
                             }
@@ -110,11 +111,11 @@ fun CheckoutScreen(navigateBack: () -> Unit, context: Context, navigateOrder: ()
                         }
                         Row(horizontalArrangement = Arrangement.SpaceBetween,  modifier = Modifier.fillMaxWidth()){
                             Text(text = "GST", fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                            Text(text = "${total * 0.07}", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                            Text(text = "${"%.2f".format(total * 0.07)}", fontWeight = FontWeight.Bold, fontSize = 18.sp)
                         }
                         Row(horizontalArrangement = Arrangement.SpaceBetween,  modifier = Modifier.fillMaxWidth()){
                             Text(text = "Total Due", fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                            Text(text = "${total * 0.07 + total}", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                            Text(text = "${"%.2f".format(total * 0.07 + total)}", fontWeight = FontWeight.Bold, fontSize = 18.sp)
                         }
                         Spacer(modifier = Modifier.weight(1f))
                         var scope = rememberCoroutineScope()

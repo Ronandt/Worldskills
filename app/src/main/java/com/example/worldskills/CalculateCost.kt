@@ -35,7 +35,9 @@ object CalculateCost {
     }
 
     fun drinkCost(drink: String): Float {
+        println(drink +" HUH")
         return when(drink) {
+
             getAllDrinks()[0] -> {
                 7.3f
             }
@@ -44,6 +46,9 @@ object CalculateCost {
             }
             getAllDrinks()[2] -> {
                 8f
+            }
+            "Bubble Milk Tea with Ice cream!" -> {
+                7.3f
             }
             else -> {
                 0f

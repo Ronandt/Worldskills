@@ -13,9 +13,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.worldskills.ui.theme.WorldskillsTheme
 
 class MainActivity : ComponentActivity() {
@@ -39,7 +41,11 @@ class MainActivity : ComponentActivity() {
                                 FeedbackScreen({navController.navigateUp()})
                             }
                             composable("checkout") {
-                                CheckoutScreen({navController.navigateUp()}, LocalContext.current, navigateOrder = {navController.navigate("home")})
+                                CheckoutScreen({navController.navigateUp()}, LocalContext.current, navigateOrder = {navController.navigate("home")}, navController)
+                            }
+                            composable("edit/{index}", listOf(navArgument("index") {type = NavType.IntType})) {
+                                it.arguments?.getInt("index")
+                                    ?.let { it1 -> EditScreen(index = it1, context = applicationContext, navigateBack = {navController.navigateUp()}) }
                             }
 
                         }

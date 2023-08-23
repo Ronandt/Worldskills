@@ -42,6 +42,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -75,15 +76,11 @@ fun HomeScreen(navigateFeedback: () -> Unit, navigateCheckout: () -> Unit, conte
 
     }
 
-    LaunchedEffect(Unit) {
-       withContext(Dispatchers.IO) {
 
-       }
-    }
 
     Scaffold(topBar = {
         TopAppBar(backgroundColor = appBarColor, elevation = 0.dp) {
-            Row(horizontalArrangement = Arrangement.SpaceBetween, modifier =Modifier.fillMaxWidth()) {
+            Row(horizontalArrangement = Arrangement.SpaceBetween, modifier =Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically ) {
                 Text(text = "OrderMyT", fontWeight = FontWeight.Bold, fontSize = 20.sp  )
                 IconButton(onClick = navigateCheckout) {
 
@@ -129,13 +126,13 @@ fun HomeScreen(navigateFeedback: () -> Unit, navigateCheckout: () -> Unit, conte
                     Column {
                         when(tabSelected) {
                             0 -> {
-                                ProfileTab(navigateFeedback)
+                                ProfileTab(navigateFeedback, context = context)
                             }
                             1-> {
                                 OrderTab(context = context)
                             }
                             2 -> {
-                                HistoryTab()
+                                HistoryTab(context = context)
                             }
                         }
                     }
@@ -151,14 +148,25 @@ fun HomeScreen(navigateFeedback: () -> Unit, navigateCheckout: () -> Unit, conte
 
 
 @Composable
-fun ProfileTab(navigateFeedback: () -> Unit) {
+fun ProfileTab(navigateFeedback: () -> Unit, context: Context) {
+    var points by remember {mutableStateOf(0)}
+    var favouriteDrink = SharedPrefResolver.getSession(context)?.getJSONObject("result")?.getJSONObject("profile")?.getJSONArray("prefered_order")!!
+    LaunchedEffect(Unit) {
+        withContext(Dispatchers.IO) {
+            //println(SharedPrefResolver.getSession(context)?.getJSONObject("result").getJSONObject("profile")+ "HIHI")
+            points = SharedPrefResolver.getSession(context)?.getJSONObject("result")?.getJSONObject("profile")?.getInt("points")!!
+
+        }
+    }
     Column(modifier = Modifier.padding(20.dp)) {
         androidx.compose.material.Card(modifier = Modifier
             .fillMaxWidth()
             .height(140.dp)) {
             Column(verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier) {
-                Image(painter = painterResource(id = R.drawable.person), contentDescription = "Profile picture", contentScale = ContentScale.Fit, modifier = Modifier.clip(
-                    CircleShape))
+                Image(painter = painterResource(id = R.drawable.person), contentDescription = "Profile picture", contentScale = ContentScale.Fit, modifier = Modifier.size(100.dp).clip(
+                    CircleShape).clickable {
+
+                })
             }
 
         }
@@ -168,30 +176,38 @@ fun ProfileTab(navigateFeedback: () -> Unit) {
             .fillMaxWidth()
             .height(60.dp)){
             Column(verticalArrangement = Arrangement.Center, modifier = Modifier.fillMaxHeight(),) {
-                Text(text = "3300 Points", modifier = Modifier.padding(start = 20.dp), fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                Text(text = "${points} Points", modifier = Modifier.padding(start = 20.dp), fontWeight = FontWeight.Bold, fontSize = 20.sp)
             }
 
         }
         Spacer(modifier = Modifier.height(40.dp))
         Text(text = "Favourite Drink", fontWeight = FontWeight.Bold, fontSize = 20.sp)
         Spacer(modifier = Modifier.height(20.dp))
-        Card(colors = CardDefaults.cardColors(appBarColor), shape = RoundedCornerShape(20.dp),  modifier = Modifier
-            .fillMaxWidth()
-            .height(100.dp)){
-            Row(modifier = Modifier
-                .fillMaxHeight()
-                .fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(20.dp), verticalAlignment = Alignment.CenterVertically) {
-                Image(painter = painterResource(id = R.drawable.bubbletea_1), contentDescription = "Bubble tea", modifier = Modifier.size(60.dp))
-                Column(verticalArrangement = Arrangement.SpaceEvenly, modifier = Modifier.height(80.dp)){
+        for(x in 0 until favouriteDrink.length()) {
+            Card(colors = CardDefaults.cardColors(appBarColor), shape = RoundedCornerShape(20.dp),  modifier = Modifier
+                .fillMaxWidth()
+                .height(100.dp)){
+                Row(modifier = Modifier
+                    .fillMaxHeight()
+                    .fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(20.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Image(painter = painterResource(id = R.drawable.bubbletea_1), contentDescription = "Bubble tea", modifier = Modifier.size(90.dp))
+                    Column(verticalArrangement = Arrangement.SpaceEvenly, modifier = Modifier.height(80.dp)){
 
-                    Text("Bubble milk with ice cream"
-                    )
-                    Text(text = "Medium sized, Vanilla")
+                        Text("${favouriteDrink.getJSONObject(x).getString("name")}", fontSize = 10.sp)
+                        Text(text = "${favouriteDrink.getJSONObject(x).getJSONArray("cust")[0]},${favouriteDrink.getJSONObject(x).getJSONArray("cust")[1]} ", fontSize = 10.sp)
+                    }
+                    var scope = rememberCoroutineScope()
+                    ChoiceButton(selected = true, text = "ORDER", small = true, onClick = {
+
+                        SharedPrefResolver.addCart(context, SharedPrefResolver.getSession(context)!!.getJSONObject("result").getString("mobile"), favouriteDrink.getJSONObject(x)
+                        )
+                        Toast.makeText(context, "Item added to cart!", Toast.LENGTH_LONG).show()
+                    })
                 }
-                ChoiceButton(selected = true, text = "ORDER", small = true)
             }
+            Spacer(modifier = Modifier.height(20.dp))
         }
-        Spacer(modifier = Modifier.height(20.dp))
+
         Card(colors = CardDefaults.cardColors(appBarColor), shape = RoundedCornerShape(20.dp), modifier = Modifier
             .fillMaxWidth()
             .height(80.dp)){
@@ -199,7 +215,7 @@ fun ProfileTab(navigateFeedback: () -> Unit) {
                 .fillMaxWidth()
                 .fillMaxHeight(), horizontalArrangement = Arrangement.SpaceAround, verticalAlignment = Alignment.CenterVertically){
                 Image(painter = painterResource(R.drawable.dog), contentDescription = "Feedback", Modifier.size(40.dp))
-                Text(text = "A need to feedback on our service?")
+                Text(text = "A need to feedback on our service?", fontSize = 10.sp)
                 ChoiceButton(selected = true, text = "FEEDBACK", small = true, onClick = navigateFeedback)
             }
 
@@ -224,7 +240,7 @@ fun OrderTab(context: Context) {
         .height(40.dp)
         .fillMaxWidth())
     BottomSheetScaffold(sheetContent = {
-        Column(modifier = Modifier.height(300.dp)) {
+        Column(modifier = Modifier.height(350.dp)) {
             Divider(color = Color.Black, thickness = 2.dp, modifier = Modifier
                 .width(14.dp)
                 .align(Alignment.CenterHorizontally))
@@ -345,28 +361,33 @@ fun OrderTab(context: Context) {
 }
 
 @Composable
-fun HistoryTab() {
+fun HistoryTab(context: Context) {
+    var history = SharedPrefResolver.getSession(context)?.getJSONArray("history")
     Spacer(modifier = Modifier.height(18.dp))
     Text(text = "Recent Orders", fontWeight = FontWeight.Bold, fontSize = 20.sp, )
     Spacer(modifier = Modifier.height(30.dp))
     LazyColumn(verticalArrangement = Arrangement.spacedBy(20.dp)) {
-        items(3) {
-            Card(shape = RoundedCornerShape(30.dp), modifier = Modifier
-                .fillMaxWidth()
-                .height(120.dp), colors = CardDefaults.cardColors(appBarColor)) {
-                Row(modifier = Modifier
+        history?.length()?.let {
+            items(it) {
+                Card(shape = RoundedCornerShape(30.dp), modifier = Modifier
                     .fillMaxWidth()
-                    .fillMaxHeight(), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically) {
-                    Image(painter = painterResource(R.drawable.bubbletea_1), contentDescription = "Bubble tea")
-                    Column(modifier = Modifier.height(80.dp), verticalArrangement = Arrangement.SpaceBetween) {
-                        Text(text = "Bubble milk tea with ice cream")
-                        Text(text = "larged size vanilla")
-                    }
-                    Column(modifier =  Modifier.height(80.dp), verticalArrangement = Arrangement.SpaceBetween, horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(text = "$8.6", fontWeight = FontWeight.Bold)
-                        ChoiceButton(selected = true, text = "ORDER AGAIN", small = true)
-                    }
+                    .height(120.dp), colors = CardDefaults.cardColors(appBarColor)) {
+                    Row(modifier = Modifier
+                        .fillMaxWidth()
+                        .fillMaxHeight(), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically) {
+                        Image(painter = painterResource(R.drawable.bubbletea_1), contentDescription = "Bubble tea", modifier = Modifier.size(70.dp))
+                        Column(modifier = Modifier.height(60.dp), verticalArrangement = Arrangement.SpaceBetween) {
+                            Text(text = "${history.getJSONObject(it).getString("name")}")
+                            Text(text = "${history.getJSONObject(it).getJSONArray("cust")[0]}, ${history.getJSONObject(it).getJSONArray("cust")[1]}")
+                        }
+                        Column(modifier =  Modifier.height(80.dp), verticalArrangement = Arrangement.SpaceBetween, horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(text = "$${CalculateCost.calculateTotalCost(history.getJSONObject(it).getInt("Qty"), tea = history.getJSONObject(it).getString("name"), flavour = history.getJSONObject(it).getJSONArray("cust")[1].toString(), size = history.getJSONObject(it).getJSONArray("cust")[0].toString())}", fontWeight = FontWeight.Bold)
+                            ChoiceButton(selected = true, text = "ORDER AGAIN", small = true, onClick = {
+                                SharedPrefResolver.addCart(context, SharedPrefResolver.getSession(context)?.getJSONObject("result")?.getString("mobile")!!,history.getJSONObject(it) )
+                            })
+                        }
 
+                    }
                 }
             }
         }

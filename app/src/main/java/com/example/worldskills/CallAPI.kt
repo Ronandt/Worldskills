@@ -37,19 +37,6 @@ object  CallAPI{
         }
     }
 
-    fun points(mobileNumber: String) {
-        var url = URL("http://10.0.2.2:3000/api/wss/orderT")
-        with(url.openConnection() as HttpURLConnection) {
-            doOutput = true
-            setRequestProperty("Content-Type", "application/json")
-            requestMethod = "POST"
-            var output = DataOutputStream(outputStream)
-            /*output.write(cart.apply {
-                put("mobile", mobileNumber)
-            }.toString().toByteArray())*/
-            var stream = inputStream.bufferedReader()?.let { it.readText() }
-            println(stream)
-        }
-    }
+
 
 }
